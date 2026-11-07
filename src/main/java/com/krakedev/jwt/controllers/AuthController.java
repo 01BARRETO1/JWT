@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.krakedev.jwt.entidades.Usuario;
 import com.krakedev.jwt.repositories.UsuarioRepository;
 import com.krakedev.jwt.services.UsuarioService;
+import com.krakedev.jwt.utils.JwtUtil;
 
 
 
@@ -60,7 +61,10 @@ public class AuthController {
 			//Buscamos a este usuario en la base de datos/ .get() para recuperarlo 
 			Usuario usuario =usuarioRepository.findByUsername(username).get();
 			
-			return ResponseEntity.ok(Map.of("Login", usuario.getRol()));
+			//TOKENN
+			String token = JwtUtil.generarToken(usuario.getUsername(), usuario.getRol());
+			
+			return ResponseEntity.ok(Map.of("Login", token));
 		}else {
 			
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario o contraseña incorrecta");
