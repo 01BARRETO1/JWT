@@ -4,13 +4,14 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.krakedev.jwt.entidades.Usuario;
 import com.krakedev.jwt.repositories.UsuarioRepository;
 import com.krakedev.jwt.services.UsuarioService;
@@ -71,5 +72,33 @@ public class AuthController {
 		}
 	}
 	
+	
+	// Método para probar el token
+	@GetMapping("/perfil")
+	public ResponseEntity<?> verPerfil(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body("Acceso Denegado: Debes proveer un token Bearer valido en la cabecera Authorization");
+		}
+
+		// elimina-> substring(7)
+		String token = authHeader.substring(7);
+
+		DecodedJWT datosToken = JwtUtil.validarToken(token);
+
+		if (datosToken == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Acceso denegado, token invalido o Expirado");
+		}
+
+		String usuario = datosToken.getSubject();
+
+		String rol = datosToken.getClaim("rol").asString();
+
+		return ResponseEntity.ok(Map.of("Mensaje", "Bienvendio al sistema protegido por jwt", "Usuario", usuario, "Rol",
+				rol, "Estatus", "Autenticado exitosamente"
+
+		));
+	}
 	
 }
